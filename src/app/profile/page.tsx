@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
+import React from "react";
 import { UserIcon, EnvelopeIcon, PhoneIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 
@@ -218,8 +219,8 @@ export default function ProfilePage() {
                       {profile?.role === "CLIENT"
                         ? "Client"
                         : profile?.role === "INTERPRETER"
-                        ? "Interprète"
-                        : "Administrateur"}
+                          ? "Interprète"
+                          : "Administrateur"}
                     </p>
                   </div>
                 </div>

@@ -3,8 +3,8 @@ import { getToken } from "next-auth/jwt";
 import { db } from "@/lib/db";
 
 export async function PATCH(
-  request: NextRequest,
-  context: { params: { id: string } }
+  request,
+  context
 ) {
   try {
     // Récupérer l'ID de la réservation de manière sûre
@@ -12,7 +12,7 @@ export async function PATCH(
 
     // Vérifier l'authentification
     const token = await getToken({
-      req: request as any,
+      req: request,
       secret: process.env.NEXTAUTH_SECRET,
     });
 
@@ -20,20 +20,15 @@ export async function PATCH(
       return NextResponse.json({ message: "Non autorisé" }, { status: 401 });
     }
 
-    // Vérifier que l'utilisateur est un interprète
-    const user = await db.user.findUnique({
-      where: { id: token.sub },
-      include: { interpreter: true },
-    });
-
-    if (!user || !user.interpreter || token.role !== "INTERPRETER") {
+    // Vérifier que l'utilisateur est un client
+    if (token.role !== "CLIENT") {
       return NextResponse.json(
-        { message: "Seuls les interprètes peuvent confirmer les réservations" },
+        { message: "Seuls les clients peuvent annuler leurs réservations" },
         { status: 403 }
       );
     }
 
-    // Vérifier que la réservation existe et appartient à l'interprète
+    // Vérifier que la réservation existe et appartient au client
     const booking = await db.booking.findUnique({
       where: { id: bookingId },
     });
@@ -45,41 +40,43 @@ export async function PATCH(
       );
     }
 
-    if (booking.interpreterId !== user.interpreter.id) {
+    if (booking.clientId !== token.sub) {
       return NextResponse.json(
         { message: "Cette réservation ne vous appartient pas" },
         { status: 403 }
       );
     }
 
-    // Vérifier que la réservation peut être confirmée
+    // Vérifier que la réservation peut être annulée
     if (booking.status !== "PENDING") {
       return NextResponse.json(
-        {
-          message: "Seules les réservations en attente peuvent être confirmées",
-        },
+        { message: "Seules les réservations en attente peuvent être annulées" },
         { status: 400 }
       );
     }
 
-    // Confirmer la réservation
+    // Annuler la réservation
     const updatedBooking = await db.booking.update({
       where: { id: bookingId },
-      data: { status: "CONFIRMED" },
+      data: {
+        status: "CANCELLED",
+        // Si le paiement a été effectué, on pourrait gérer le remboursement ici
+        // paymentStatus: booking.paymentStatus === "PAID" ? "REFUNDED" : booking.paymentStatus,
+      },
     });
 
-    // TODO: Envoyer une notification au client
+    // TODO: Envoyer une notification à l'interprète
 
     return NextResponse.json({
-      message: "Réservation confirmée avec succès",
+      message: "Réservation annulée avec succès",
       booking: updatedBooking,
     });
   } catch (error) {
-    console.error("Erreur lors de la confirmation de la réservation:", error);
+    console.error("Erreur lors de l'annulation de la réservation:", error);
     return NextResponse.json(
       {
         message:
-          "Une erreur est survenue lors de la confirmation de la réservation",
+          "Une erreur est survenue lors de l'annulation de la réservation",
       },
       { status: 500 }
     );

@@ -9,6 +9,7 @@ import {
   LanguageIcon,
 } from "@heroicons/react/24/outline";
 import BookingForm from "./booking-form";
+import React from "react";
 
 // Fonction utilitaire pour parser les chaînes JSON
 function parseJsonField(field: string | null): string[] {
@@ -61,6 +62,11 @@ type ParsedInterpreter = Omit<
   specializations: string[];
 };
 
+interface PageProps {
+  params: { id: string };
+  searchParams: Record<string, string | string[] | undefined>;
+}
+
 // Fonction pour récupérer les détails d'un interprète
 async function getInterpreter(id: string): Promise<ParsedInterpreter | null> {
   const interpreter = await db.interpreter.findUnique({
@@ -107,9 +113,9 @@ async function getInterpreter(id: string): Promise<ParsedInterpreter | null> {
 export default async function InterpreterPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const interpreter = await getInterpreter(params.id);
+  const interpreter = await getInterpreter((await params).id);
 
   if (!interpreter) {
     notFound();

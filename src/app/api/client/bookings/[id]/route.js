@@ -3,8 +3,8 @@ import { getToken } from "next-auth/jwt";
 import { db } from "@/lib/db";
 
 export async function GET(
-  request: NextRequest,
-  context: { params: { id: string } }
+  request,
+  context
 ) {
   try {
     // Récupérer l'ID de la réservation de manière sûre

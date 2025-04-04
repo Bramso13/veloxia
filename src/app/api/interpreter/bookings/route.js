@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import prisma from "@/lib/prisma";
 
-export async function GET(req: NextRequest) {
+export async function GET(req) {
   try {
     // Vérifier l'authentification
-    const token = await getToken({ req: req as any });
+    const token = await getToken({ req });
 
     if (!token) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });

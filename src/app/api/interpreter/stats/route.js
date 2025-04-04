@@ -2,15 +2,9 @@ import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { db } from "@/lib/db";
 
-// Définir un type local pour les réservations
-type BookingStats = {
-  id: string;
-  status: string;
-  paymentStatus: string;
-  totalAmount: number;
-};
 
-export async function GET(req: Request) {
+
+export async function GET(req) {
   try {
     // Vérifier l'authentification
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -33,7 +27,7 @@ export async function GET(req: Request) {
     // Récupérer toutes les réservations de l'interprète
     const bookings = (await db.booking.findMany({
       where: {
-        interpreterId: token.interpreterId as string,
+        interpreterId: token.interpreterId,
       },
       select: {
         id: true,
@@ -41,28 +35,25 @@ export async function GET(req: Request) {
         paymentStatus: true,
         totalAmount: true,
       },
-    })) as BookingStats[];
+    }));
 
     // Calculer les statistiques
     const totalBookings = bookings.length;
 
     const pendingBookings = bookings.filter(
-      (booking: BookingStats) => booking.status === "PENDING"
+      (booking) => booking.status === "PENDING"
     ).length;
 
     const completedBookings = bookings.filter(
-      (booking: BookingStats) => booking.status === "COMPLETED"
+      (booking) => booking.status === "COMPLETED"
     ).length;
 
     const totalEarnings = bookings
       .filter(
-        (booking: BookingStats) =>
+        (booking) =>
           booking.status === "COMPLETED" && booking.paymentStatus === "PAID"
       )
-      .reduce(
-        (sum: number, booking: BookingStats) => sum + booking.totalAmount,
-        0
-      );
+      .reduce((sum, booking) => sum + booking.totalAmount, 0);
 
     return NextResponse.json({
       totalBookings,

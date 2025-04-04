@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
 // Fonction utilitaire pour parser les chaînes JSON
-function parseJsonField(field: string | null): string[] {
+function parseJsonField(field) {
   if (!field) return [];
   try {
     return JSON.parse(field);
@@ -12,14 +12,14 @@ function parseJsonField(field: string | null): string[] {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(request) {
   try {
     // Récupérer les paramètres de recherche
     const searchParams = request.nextUrl.searchParams;
     const city = searchParams.get("city");
 
     // Construire la requête avec les filtres
-    const whereClause: any = {
+    const whereClause = {
       // isVerified: true, // Décommenté si vous voulez filtrer uniquement les interprètes vérifiés
     };
 

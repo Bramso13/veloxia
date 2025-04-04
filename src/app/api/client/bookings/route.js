@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { db } from "@/lib/db";
 
-export async function GET(req: NextRequest) {
+export async function GET(req) {
   try {
     // Vérifier l'authentification
-    const token = await getToken({
-      req: req as any,
+    const token = await getToken({  
+      req,
       secret: process.env.NEXTAUTH_SECRET,
     });
 
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     // Récupérer les réservations du client
     const bookings = await db.booking.findMany({
       where: {
-        clientId: token.sub as string,
+        clientId: token.sub,
       },
       include: {
         interpreter: {

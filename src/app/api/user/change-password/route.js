@@ -12,9 +12,9 @@ const passwordChangeSchema = z.object({
     .min(8, "Le nouveau mot de passe doit contenir au moins 8 caractères"),
 });
 
-export async function POST(request: NextRequest) {
+export async function POST(request) {
   try {
-    const token = await getToken({ req: request as any });
+    const token = await getToken({ req: request });
 
     if (!token) {
       return NextResponse.json({ message: "Non authentifié" }, { status: 401 });

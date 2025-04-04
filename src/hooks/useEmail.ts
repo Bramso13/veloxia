@@ -1,10 +1,10 @@
 import { useState } from "react";
-import type { EmailTemplate } from "@/lib/email-service";
+import { EmailTemplateType } from "@/lib/email-service";
 
 interface UseEmailReturn {
   sendEmail: (params: {
     to: string;
-    template: EmailTemplate;
+    template: EmailTemplateType;
     userName: string;
     actionUrl?: string;
     actionText?: string;
@@ -19,7 +19,7 @@ export function useEmail(): UseEmailReturn {
 
   const sendEmail = async (params: {
     to: string;
-    template: EmailTemplate;
+    template: EmailTemplateType;
     userName: string;
     actionUrl?: string;
     actionText?: string;

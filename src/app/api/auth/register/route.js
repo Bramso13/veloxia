@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { db } from "@/lib/db";
-import { sendEmail } from "@/lib/email-service";
+import { sendWelcomeEmail } from "@/lib/email-service";
 
-export async function POST(req: Request) {
+export async function POST(req) {
   try {
     const { name, email, password, role } = await req.json();
 
@@ -34,13 +34,7 @@ export async function POST(req: Request) {
 
     // Envoyer l'email de bienvenue
     try {
-      await sendEmail({
-        to: email,
-        template: "welcome",
-        userName: name,
-        actionUrl: `${process.env.NEXT_PUBLIC_APP_URL}/profile`,
-        actionText: "Compléter mon profil",
-      });
+      await sendWelcomeEmail(email, name);
     } catch (emailError) {
       console.error(
         "Erreur lors de l'envoi de l'email de bienvenue:",

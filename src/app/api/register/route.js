@@ -4,11 +4,11 @@ import { db } from "@/lib/db";
 import { z } from "zod";
 
 // Enum pour les rôles d'utilisateur
-enum UserRole {
-  ADMIN = "ADMIN",
-  INTERPRETER = "INTERPRETER",
-  CLIENT = "CLIENT",
-}
+const UserRole = {
+  ADMIN: "ADMIN",
+  INTERPRETER: "INTERPRETER",
+  CLIENT: "CLIENT",
+};
 
 // Schéma de validation pour les données d'inscription
 const registerSchema = z.object({
@@ -25,7 +25,7 @@ const registerSchema = z.object({
   city: z.string().optional(),
 });
 
-export async function POST(req: Request) {
+export async function POST(req) {
   try {
     const body = await req.json();
     console.log("Données reçues:", body);
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
         name,
         email,
         password: hashedPassword,
-        role: role as any, // Conversion du type pour correspondre à l'enum de Prisma
+        role: role, // Conversion du type pour correspondre à l'enum de Prisma
       },
     });
 

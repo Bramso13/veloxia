@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { sendEmail } from "@/lib/email-service";
+import { sendPasswordResetEmail } from "@/lib/email-service";
 import { randomBytes } from "crypto";
 
-export async function POST(req: Request) {
+export async function POST(req) {
   try {
     const { email } = await req.json();
 
@@ -31,7 +31,6 @@ export async function POST(req: Request) {
     await db.user.update({
       where: { email },
       data: {
-        // @ts-ignore - Ces champs existent dans le modèle mais ne sont pas dans le type généré
         resetToken,
         resetTokenExpiry,
       },
@@ -42,13 +41,7 @@ export async function POST(req: Request) {
 
     // Envoyer l'email de réinitialisation
     try {
-      await sendEmail({
-        to: email,
-        template: "password-reset",
-        userName: user.name || "Utilisateur",
-        actionUrl: resetUrl,
-        actionText: "Réinitialiser mon mot de passe",
-      });
+      await sendPasswordResetEmail(email, resetUrl);
     } catch (emailError) {
       console.error(
         "Erreur lors de l'envoi de l'email de réinitialisation:",

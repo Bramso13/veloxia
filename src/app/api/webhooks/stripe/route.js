@@ -3,18 +3,18 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { db } from "@/lib/db";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2025-02-24.acacia",
 });
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-export async function POST(req: Request) {
+export async function POST(req) {
   try {
     const body = await req.text();
-    const signature = headers().get("stripe-signature")!;
+    const signature = headers().get("stripe-signature");
 
-    let event: Stripe.Event;
+    let event;
 
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     }
 
     if (event.type === "checkout.session.completed") {
-      const session = event.data.object as Stripe.Checkout.Session;
+      const session = event.data.object;
       const bookingId = session.metadata?.bookingId;
 
       if (bookingId) {

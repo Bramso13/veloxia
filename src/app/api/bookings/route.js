@@ -3,14 +3,14 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Stripe from "stripe";
 import { db } from "@/lib/db";
-import { sendEmail } from "@/lib/email-service";
+import { sendBookingConfirmationEmail } from "@/lib/email-service";
 import { createPaymentSession } from "@/lib/stripe-service";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2025-02-24.acacia",
 });
 
-export async function POST(req: NextRequest) {
+export async function POST(req) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
       mode: "payment",
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/test-stripe/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/test-stripe/cancel`,
-      customer_email: session.user.email!,
+      customer_email: session.user.email,
       metadata: {
         bookingId: booking.id,
         interpreterName: interpreter.user.name || "Interprète",
@@ -92,13 +92,12 @@ export async function POST(req: NextRequest) {
 
     // Envoyer l'email de confirmation au client
     try {
-      await sendEmail({
-        to: session.user.email!,
-        template: "booking-confirmation",
-        userName: session.user.name || "Client",
-        actionUrl: `${process.env.NEXT_PUBLIC_APP_URL}/bookings/${booking.id}`,
-        actionText: "Voir les détails de la réservation",
-      });
+      await sendBookingConfirmationEmail(
+        session.user.email,
+        session.user.name || "Client",
+        `${process.env.NEXT_PUBLIC_APP_URL}/bookings/${booking.id}`,
+        "Voir les détails de la réservation"
+      );
     } catch (emailError) {
       console.error(
         "Erreur lors de l'envoi de l'email de confirmation:",
@@ -117,7 +116,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET(req) {
   try {
     const session = await getServerSession(authOptions);
 

@@ -10,12 +10,15 @@ const profileUpdateSchema = z.object({
 });
 
 // GET: Récupérer le profil de l'utilisateur
-export async function GET(request: NextRequest) {
+export async function GET(request) {
   try {
-    const token = await getToken({ req: request as any });
+    const token = await getToken({ req: request });
 
     if (!token) {
-      return NextResponse.json({ message: "Non authentifié" }, { status: 401 });
+      return NextResponse.json(
+        { message: "Non authentifié" },
+        { status: 401 }
+      );
     }
 
     // Récupérer l'utilisateur
@@ -38,9 +41,9 @@ export async function GET(request: NextRequest) {
 }
 
 // PATCH: Mettre à jour le profil de l'utilisateur
-export async function PATCH(request: NextRequest) {
+export async function PATCH(request) {
   try {
-    const token = await getToken({ req: request as any });
+    const token = await getToken({ req: request });
 
     if (!token) {
       return NextResponse.json({ message: "Non authentifié" }, { status: 401 });

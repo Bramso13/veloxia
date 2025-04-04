@@ -3,8 +3,8 @@ import { getToken } from "next-auth/jwt";
 import { db } from "@/lib/db";
 
 export async function PATCH(
-  request: NextRequest,
-  context: { params: { id: string } }
+  request,
+  context
 ) {
   try {
     // Récupérer l'ID de la réservation de manière sûre
@@ -12,7 +12,7 @@ export async function PATCH(
 
     // Vérifier l'authentification
     const token = await getToken({
-      req: request as any,
+      req: request,
       secret: process.env.NEXTAUTH_SECRET,
     });
 

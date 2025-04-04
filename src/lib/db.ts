@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { Vazirmatn } from "next/font/google";
 
 declare global {
   var prisma: PrismaClient | undefined;
