@@ -1,0 +1,158 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Modèle utilisateur (commun pour tous les types d'utilisateurs)
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  password      String
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  role          UserRole  @default(CLIENT)
+
+  // Relations
+  interpreter Interpreter?
+  client      Client?
+  accounts    Account[]
+  sessions    Session[]
+  bookings    Booking[]    @relation("UserBookings")
+}
+
+enum UserRole {
+  ADMIN
+  INTERPRETER
+  CLIENT
+}
+
+// Modèle pour les interprètes
+model Interpreter {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio             String?
+  experience      Int? // Années d'expérience
+  certifications  String?
+  hourlyRate      Float
+  availability    Json? // Format JSON pour stocker les disponibilités
+  languages       String // Langues des signes maîtrisées, stockées en JSON
+  specializations String // Domaines de spécialisation, stockées en JSON
+  rating          Float?    @default(0)
+  reviewCount     Int       @default(0)
+  isVerified      Boolean   @default(false)
+  stripeAccountId String? // ID du compte Stripe pour les paiements
+  city            String?
+  // Relations
+  bookings        Booking[] @relation("InterpreterBookings")
+  reviews         Review[]
+}
+
+// Modèle pour les clients (personnes sourdes ou autres)
+model Client {
+  id                String  @id @default(cuid())
+  userId            String  @unique
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preferredLanguage String? // Langue des signes préférée
+  specialNeeds      String?
+
+  // Relations
+  reviews Review[]
+}
+
+// Modèle pour les réservations
+model Booking {
+  id              String        @id @default(cuid())
+  clientId        String
+  client          User          @relation("UserBookings", fields: [clientId], references: [id])
+  interpreterId   String
+  interpreter     Interpreter   @relation("InterpreterBookings", fields: [interpreterId], references: [id])
+  startTime       DateTime
+  endTime         DateTime
+  status          BookingStatus @default(PENDING)
+  totalAmount     Float
+  paymentStatus   PaymentStatus @default(UNPAID)
+  paymentIntentId String? // ID de l'intention de paiement Stripe
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  review Review?
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+}
+
+// Modèle pour les avis
+model Review {
+  id            String      @id @default(cuid())
+  bookingId     String      @unique
+  booking       Booking     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  clientId      String
+  client        Client      @relation(fields: [clientId], references: [id])
+  interpreterId String
+  interpreter   Interpreter @relation(fields: [interpreterId], references: [id])
+  rating        Int // Note de 1 à 5
+  comment       String?
+  createdAt     DateTime    @default(now())
+}
+
+// Modèles pour NextAuth
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
